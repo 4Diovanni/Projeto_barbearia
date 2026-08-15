@@ -12,7 +12,7 @@
 Três princípios inegociáveis guiam todas as decisões abaixo:
 
 | Princípio | O que significa na prática |
-|---|---|
+| --- | --- |
 | **Sem intermediação financeira** | O app **organiza e registra** dinheiro, nunca o **processa**. Sem gateway, sem split, sem taxa, sem conta de pagamento. O PIX é direto na chave do barbeiro. |
 | **Customizável por barbeiro** | Cada instalação liga/desliga módulos via *feature flags*, com logo, cores e nome próprios. Um código-base, N configurações. |
 | **Intuitivo antes de completo** | O usuário-alvo é um barbeiro com o celular numa mão e a máquina na outra. Se um fluxo precisa de treinamento, o fluxo está errado. |
@@ -23,7 +23,7 @@ Três princípios inegociáveis guiam todas as decisões abaixo:
 
 O produto tem **três superfícies** distintas, com públicos e necessidades diferentes:
 
-```
+```text
 ┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
 │   PAINEL DO BARBEIRO    │   │   AGENDA PÚBLICA        │   │   APP DO BARBEIRO       │
 │   (Next.js · web)       │   │   (Next.js · rota /b/)  │   │   (Expo · iOS/Android)  │
@@ -57,10 +57,14 @@ O produto tem **três superfícies** distintas, com públicos e necessidades dif
 
 **TypeScript**, sem hesitação, em **100% do stack**.
 
-O motivo não é preferência estética. É que o Supabase gera tipos TypeScript diretamente do schema Postgres (`supabase gen types typescript`). Com isso, **uma coluna renomeada no banco quebra o build do app na hora**, não em produção às 19h de sexta com a barbearia cheia. As Edge Functions do Supabase também rodam Deno (TypeScript), então o mesmo tipo `Appointment` percorre o caminho inteiro — do `CREATE TABLE` até o botão na tela — sem uma única reescrita manual.
+O motivo não é preferência estética. É que o Supabase gera tipos TypeScript diretamente do schema
+Postgres (`supabase gen types typescript`). Com isso, **uma coluna renomeada no banco quebra o build
+do app na hora**, não em produção às 19h de sexta com a barbearia cheia. As Edge Functions do Supabase
+também rodam Deno (TypeScript), então o mesmo tipo `Appointment` percorre o caminho inteiro — do
+`CREATE TABLE` até o botão na tela — sem uma única reescrita manual.
 
 | Camada | Escolha | Por quê |
-|---|---|---|
+| --- | --- | --- |
 | **Web** (painel + agenda pública) | **Next.js 15** (App Router) + React 19 | Server Components deixam o dashboard rápido mesmo em 4G ruim; a agenda pública precisa de SSR para carregar instantâneo e ser indexável pelo Google ("barbearia + bairro"). |
 | **Mobile** | **Expo** (React Native) + Expo Router | Mesma linguagem, mesma lógica de negócio, mesmos devs. Expo Router usa roteamento por arquivos igual ao Next — a troca de contexto entre os dois apps é quase zero. OTA update via EAS entrega correção sem passar pela loja. |
 | **Estilo (web)** | Tailwind CSS + shadcn/ui | Componentes copiados para dentro do repo, não uma dependência opaca. Customização por barbearia vira troca de token CSS. |
@@ -71,12 +75,16 @@ O motivo não é preferência estética. É que o Supabase gera tipos TypeScript
 | **Testes** | Vitest + Testing Library + Playwright | Playwright cobre o fluxo público de agendamento ponta a ponta. |
 | **Monorepo** | Turborepo + pnpm | Cache de build e código compartilhado entre web e mobile sem publicar pacote em registry. |
 
-> **Sobre UI universal (Tamagui / Solito):** avaliado e **descartado**. A promessa de "escreva o componente uma vez, rode nos dois" cobra caro em configuração e em bugs difíceis de diagnosticar. A decisão aqui é **compartilhar lógica, não pixels**: hooks, schemas, regras de negócio e tipos são 100% compartilhados; a camada visual é nativa de cada plataforma. É mais código de UI e muito menos sofrimento.
+> **Sobre UI universal (Tamagui / Solito):** avaliado e **descartado**. A promessa de "escreva o
+> componente uma vez, rode nos dois" cobra caro em configuração e em bugs difíceis de diagnosticar.
+> A decisão aqui é **compartilhar lógica, não pixels**: hooks, schemas, regras de negócio e tipos são
+> 100% compartilhados; a camada visual é nativa de cada plataforma. É mais código de UI e muito menos
+> sofrimento.
 
 ### 3.2 Backend — Supabase
 
 | Recurso | Uso no GK-Barber |
-|---|---|
+| --- | --- |
 | **Postgres + RLS** | Núcleo de tudo. O isolamento entre barbearias é garantido **no banco**, não no código do app. |
 | **Auth** | Barbeiro/equipe por e-mail+senha ou magic link. Cliente final por **OTP de telefone** (não obrigamos ninguém a criar senha para marcar um corte). |
 | **Storage** | Logo da barbearia, fotos de portfólio, fotos antes/depois na ficha do cliente, recibos em PDF. |
@@ -94,7 +102,11 @@ Você respondeu que a transação é **local, direto com o barbeiro, sem SaaS**.
 
 **A hospedagem do software** → aqui a recomendação é **multi-tenant mesmo assim**. Um único projeto Supabase servindo todas as barbearias, isoladas por `tenant_id` + RLS.
 
-Por que multi-tenant se não é SaaS? Porque é o que torna as *feature flags* que você pediu realmente viáveis. Com uma instância Supabase por barbearia, cada correção de bug vira N deploys manuais, N migrations rodadas na mão, N chances de errar — inviável a partir de ~10 clientes, e é aí que o produto começa a dar dinheiro. Multi-tenant, você corrige uma vez e todos recebem, e ligar um módulo para um barbeiro específico é um `UPDATE` numa linha.
+Por que multi-tenant se não é SaaS? Porque é o que torna as *feature flags* que você pediu realmente
+viáveis. Com uma instância Supabase por barbearia, cada correção de bug vira N deploys manuais, N
+migrations rodadas na mão, N chances de errar — inviável a partir de ~10 clientes, e é aí que o
+produto começa a dar dinheiro. Multi-tenant, você corrige uma vez e todos recebem, e ligar um módulo
+para um barbeiro específico é um `UPDATE` numa linha.
 
 A licença permanece uma venda local e direta: **o barbeiro te paga fora do app** (PIX seu, contrato, o que for). O sistema só guarda uma data de validade da licença. Sem billing, sem cartão, sem cobrança automática dentro do produto.
 
@@ -130,7 +142,7 @@ Os 7 tópicos originais, mapeados para módulos reais — cada um com sua *featu
 O payload EMV do PIX **carrega a chave em texto claro** (campo `26-01`). Qualquer pessoa que escaneie o QR **vai ver a chave no app do banco** — é assim que o PIX funciona, e nenhum sistema muda isso. O que é possível e o que faremos:
 
 | Proteção | Viável? |
-|---|---|
+| --- | --- |
 | Não exibir a chave em nenhuma tela do app | ✅ Sim |
 | Não expor a chave em nenhuma resposta de API pública | ✅ Sim |
 | Guardar cifrada no banco (Supabase Vault / pgsodium), nunca em texto | ✅ Sim |
@@ -207,7 +219,7 @@ Módulos que fazem sentido no contexto e aumentam o valor de venda:
 Você pediu "visão de lucros". Faturamento bruto é a métrica menos útil. O painel abre com:
 
 | Bloco | Métrica |
-|---|---|
+| --- | --- |
 | **Topo** | Faturamento do mês · Lucro líquido (bruto − comissões − despesas − taxas) · Ticket médio · vs. mês anterior |
 | **Ocupação** | % da agenda preenchida por dia/profissional. Revela o buraco: **quais horários estão mortos** |
 | **Retenção** | % de clientes que voltaram em 60 dias · quantos sumiram · frequência média de retorno |
@@ -350,7 +362,7 @@ A página pública precisa mostrar horários livres **sem** expor nome, telefone
 ### 8.3 Segredos
 
 | Dado | Onde vive |
-|---|---|
+| --- | --- |
 | Chave PIX do barbeiro | Cifrada no Supabase Vault. Decifrada só dentro da Edge Function que monta o BR Code. |
 | Token WhatsApp Cloud API | Secret da Edge Function. Nunca no cliente. |
 | `service_role key` | Só em Edge Function / server-side do Next. |
@@ -486,7 +498,7 @@ Feature flags completas · white-label · pacotes e carnês · estoque · fideli
 ## 12. Decisões Registradas (ADR resumido)
 
 | # | Decisão | Alternativa descartada | Razão |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | TypeScript em todo o stack | Kotlin/Swift nativo, Flutter | Tipos gerados do Postgres percorrem até a UI; um time, um idioma |
 | 2 | Next.js + Expo separados | Tamagui/Solito universal | Compartilhar lógica é barato; compartilhar pixels é caro |
 | 3 | Multi-tenant com RLS | Instância por barbearia | Manutenção linear é inviável; RLS isola no banco |
@@ -503,7 +515,7 @@ Feature flags completas · white-label · pacotes e carnês · estoque · fideli
 ## 13. Riscos Conhecidos
 
 | Risco | Mitigação |
-|---|---|
+| --- | --- |
 | Barbeiro esquece de dar baixa no PIX | Badge persistente de pendências no dashboard + resumo diário no WhatsApp dele |
 | Aprovação de templates na Meta demora | Submeter os templates na Fase 3, antes de precisar deles na Fase 4 |
 | Internet cai no balcão | PWA offline-first com fila de sincronização (Fase 5) |
