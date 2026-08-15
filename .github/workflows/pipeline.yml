@@ -9,9 +9,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  pull-requests: read
-  statuses: write
 
 concurrency:
   group: pipeline-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -21,11 +18,15 @@ jobs:
   code-analysis:
     name: code-analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Super-Linter
         uses: super-linter/super-linter/slim@4ce20838b8ab83717e78138c5b3a1407148e0918 # v8
@@ -38,11 +39,14 @@ jobs:
   security-analysis:
     name: security-analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Gitleaks (varredura de segredos)
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
