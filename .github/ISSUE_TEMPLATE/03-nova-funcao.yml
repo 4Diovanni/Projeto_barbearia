@@ -1,0 +1,32 @@
+name: "🚀 Nova função"
+description: "Uma capacidade que o sistema ainda não tem (novo módulo, integração, endpoint…)."
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: O que o sistema passa a fazer, na perspectiva de quem usa.
+      placeholder: 'Ex.: "Como usuário, quero X" resulta em Y.'
+    validations:
+      required: true
+  - type: textarea
+    id: desenho
+    attributes:
+      label: Desenho
+      description: |
+        Módulo/arquivo novo? Rotas novas? Config nova (.env / arquivo de settings)?
+        Dependências extras?
+    validations:
+      required: true
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critérios de aceite
+      value: |
+        - [ ]
+        - [ ] Testes automatizados cobrindo o novo comportamento
+        - [ ] Documentação atualizada
+    validations:
+      required: true
