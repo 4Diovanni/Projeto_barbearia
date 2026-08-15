@@ -1,0 +1,190 @@
+name: Supabase
+
+# Valida o que o CI de TypeScript não alcança: as migrations do Postgres, as
+# policies de RLS e as Edge Functions (Deno).
+#
+# É aqui que mora a guarda mais importante do produto — nenhuma tabela com
+# `tenant_id` entra no banco sem RLS. Ver .github/scripts/check-rls.sql.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: Detectar backend
+    runs-on: ubuntu-latest
+    outputs:
+      migrations: ${{ steps.check.outputs.migrations }}
+      functions: ${{ steps.check.outputs.functions }}
+      types: ${{ steps.check.outputs.types }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verificar artefatos do Supabase
+        id: check
+        run: |
+          set -euo pipefail
+          existe() { if compgen -G "$1" > /dev/null; then echo true; else echo false; fi; }
+          {
+            echo "migrations=$(existe 'supabase/migrations/*.sql')"
+            echo "functions=$(existe 'supabase/functions/*/index.ts')"
+            echo "types=$(existe 'packages/db/src/database.types.ts')"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Sobe um Postgres limpo, aplica todas as migrations do zero e audita o
+  # resultado. Migration que só funciona a partir de um banco já existente
+  # quebra aqui — que é exatamente onde deve quebrar.
+  # ══════════════════════════════════════════════════════════════════════════
+  database:
+    name: Migrations, RLS e testes de banco
+    needs: detect
+    if: needs.detect.outputs.migrations == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Instalar Supabase CLI
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
+        with:
+          version: latest
+
+      - name: Subir Postgres local
+        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,storage-api
+
+      - name: Aplicar migrations do zero
+        run: supabase db reset
+
+      # A string de conexão vem do próprio CLI em vez de ficar escrita aqui.
+      # São credenciais efêmeras do stack local, mas credencial literal em
+      # arquivo versionado é ruído para o gitleaks e mau hábito de repositório.
+      - name: Exportar conexão do banco local
+        run: |
+          set -euo pipefail
+          eval "$(supabase status -o env)"
+          echo "DB_URL=${DB_URL}" >> "$GITHUB_ENV"
+
+      - name: Lint do schema (supabase db lint)
+        run: supabase db lint --level warning --fail-on warning
+
+      # ⭐ Risco #13 da arquitetura: RLS esquecida numa tabela nova.
+      - name: Guarda de RLS multi-tenant
+        run: psql "$DB_URL" -v ON_ERROR_STOP=1 -f .github/scripts/check-rls.sql
+
+      # A exclusion constraint contra dupla marcação é a única defesa real
+      # contra condição de corrida (§7.1). Se sumir, o CI precisa gritar.
+      - name: Verificar exclusion constraint anti dupla-marcação
+        run: |
+          set -euo pipefail
+          existe=$(psql "$DB_URL" -tAc "
+            select count(*) from pg_constraint
+             where conrelid = 'public.appointments'::regclass
+               and contype  = 'x';
+          ")
+          if [ "$existe" -lt 1 ]; then
+            echo "::error::appointments perdeu a exclusion constraint contra dupla marcação."
+            exit 1
+          fi
+          echo "Exclusion constraint presente."
+
+      - name: Testes pgTAP (supabase test db)
+        run: |
+          set -euo pipefail
+          if compgen -G 'supabase/tests/*.sql' > /dev/null; then
+            supabase test db
+          else
+            echo "::notice::Sem testes pgTAP em supabase/tests — etapa pulada."
+          fi
+
+      # Tipos gerados desatualizados anulam a garantia de ponta a ponta do
+      # TypeScript: o build passa e a query quebra em produção.
+      - name: Conferir se os tipos gerados estão atualizados
+        if: needs.detect.outputs.types == 'true'
+        run: |
+          set -euo pipefail
+          supabase gen types typescript --local > /tmp/database.types.ts
+          if ! diff -u packages/db/src/database.types.ts /tmp/database.types.ts; then
+            echo "::error::Tipos desatualizados. Rode: supabase gen types typescript --local > packages/db/src/database.types.ts"
+            exit 1
+          fi
+
+      - name: Logs do stack local em caso de falha
+        if: failure()
+        run: supabase status || true
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Edge Functions rodam Deno, não Node — toolchain próprio.
+  # ══════════════════════════════════════════════════════════════════════════
+  edge-functions:
+    name: Edge Functions (Deno)
+    needs: detect
+    if: needs.detect.outputs.functions == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Instalar Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      - name: Formatação
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      - name: Typecheck
+        run: deno check --all ./*/index.ts
+
+      - name: Testes
+        run: |
+          set -euo pipefail
+          if find . -name '*_test.ts' -o -name '*.test.ts' | grep -q .; then
+            deno test --allow-all
+          else
+            echo "::notice::Sem testes de Edge Function — etapa pulada."
+          fi
+
+  supabase-ok:
+    name: Supabase OK
+    if: always()
+    needs: [database, edge-functions]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consolidar resultado
+        run: |
+          set -euo pipefail
+          resultados='${{ join(needs.*.result, ' ') }}'
+          echo "Resultados dos jobs: $resultados"
+          for r in $resultados; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::Validação do Supabase reprovada."
+              exit 1
+            fi
+          done
+          echo "Backend aprovado."

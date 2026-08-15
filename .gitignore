@@ -1,0 +1,89 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# GK-Barber — monorepo Turborepo/pnpm (Next.js · Expo · Supabase/Deno)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Segredos ───────────────────────────────────────────────────────────────
+# Regra da arquitetura (§8.3): chave PIX, token da WhatsApp Cloud API e
+# service_role key nunca entram no git. .env.example é a única exceção.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Dependências ───────────────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+.pnp.*
+.yarn/
+
+# ── Build e cache ──────────────────────────────────────────────────────────
+dist/
+build/
+out/
+.turbo/
+*.tsbuildinfo
+
+# ── Next.js (apps/web) ─────────────────────────────────────────────────────
+.next/
+.vercel/
+next-env.d.ts
+
+# ── Expo / React Native (apps/mobile) ──────────────────────────────────────
+# android/ e ios/ são gerados pelo prebuild (CNG). Caminho restrito de
+# propósito: se o projeto um dia sair do managed workflow, o ejetar é
+# uma decisão consciente e este bloco precisa cair junto.
+.expo/
+.expo-shared/
+apps/mobile/android/
+apps/mobile/ios/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.orig.*
+web-build/
+
+# ── Supabase ───────────────────────────────────────────────────────────────
+# ⚠️ migrations/, functions/ e seed.sql SÃO versionados — é o schema do
+# produto. Só o estado local do CLI fica de fora.
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# ── Deno (Edge Functions) ──────────────────────────────────────────────────
+.deno/
+
+# ── Testes ─────────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+
+# ── Logs ───────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Editores ───────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# ── Sistema operacional ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── Ferramentas locais ─────────────────────────────────────────────────────
+actionlint*
+trivy-results.sarif
