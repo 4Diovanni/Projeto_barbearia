@@ -88,7 +88,11 @@ jobs:
           VALIDATE_MARKDOWN: "true"
           VALIDATE_GITHUB_ACTIONS: "true"
           VALIDATE_BASH: "true"
-          FILTER_REGEX_EXCLUDE: '(.github/(ISSUE_TEMPLATE|pull_request_template.md)/.*|pnpm-lock.yaml|.*/node_modules/.*|supabase/.branches/.*)'
+          # Templates do GitHub ficam de fora: são fragmentos de formulário,
+          # não documentos — o de PR começa com "Closes #" e nunca terá H1.
+          # `pull_request_template.md` é arquivo, então não pode levar `/.*`
+          # no fim como o diretório ISSUE_TEMPLATE leva.
+          FILTER_REGEX_EXCLUDE: '(\.github/ISSUE_TEMPLATE/.*|\.github/pull_request_template\.md|pnpm-lock\.yaml|node_modules/|supabase/\.branches/.*)'
 
   # ══════════════════════════════════════════════════════════════════════════
   # ESLint + Prettier + tsc. O typecheck é o que dá valor real aos tipos
