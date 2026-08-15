@@ -1,0 +1,62 @@
+name: Pipeline de Qualidade e Segurança
+
+on:
+  schedule:
+    - cron: "0 3 */3 * *" # aproximadamente a cada 3 dias, 03:00 UTC
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+concurrency:
+  group: pipeline-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-analysis:
+    name: code-analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Super-Linter
+        uses: super-linter/super-linter/slim@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name != 'pull_request' }}
+          FILTER_REGEX_EXCLUDE: .github/(ISSUE_TEMPLATE|pull_request_template.md)/.*
+
+  security-analysis:
+    name: security-analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks (varredura de segredos)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy (vulnerabilidades e más configurações)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          format: table
+
+      - name: Revisão de dependências
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
