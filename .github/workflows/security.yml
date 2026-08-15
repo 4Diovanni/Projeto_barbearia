@@ -1,0 +1,188 @@
+name: Segurança
+
+# Varredura de segredos, vulnerabilidades e análise estática (SAST).
+# Roda em PR, no main e periodicamente — CVE nova aparece em dependência que
+# não foi tocada, então varredura só em PR deixa buraco.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 3 */3 * *" # a cada ~3 dias, 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════════════
+  # Segredos. Neste produto o estrago é concreto: service_role key, token da
+  # WhatsApp Cloud API e chave PIX do barbeiro. Nenhum deles pode entrar no git.
+  # ══════════════════════════════════════════════════════════════════════════
+  secrets:
+    name: Varredura de segredos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Guarda específica da arquitetura (§8.2): a service_role key nunca pode
+      # ser exposta ao cliente — nem via NEXT_PUBLIC_, nem via EXPO_PUBLIC_.
+      # O bundle de web e de mobile é lido trivialmente por qualquer pessoa.
+      - name: Guarda de service_role em variável pública
+        run: |
+          set -euo pipefail
+          padrao='(NEXT_PUBLIC|EXPO_PUBLIC)_[A-Z0-9_]*(SERVICE_ROLE|SERVICE_KEY|SECRET|PIX_KEY|WHATSAPP_TOKEN)'
+          if grep -rInE "$padrao" \
+               --exclude-dir=.git \
+               --exclude-dir=node_modules \
+               --exclude-dir=.next \
+               --exclude-dir=.turbo \
+               --exclude="*.yml" \
+               . ; then
+            echo "::error::Segredo exposto em variável pública de cliente. Mova para Edge Function ou server-side."
+            exit 1
+          fi
+          echo "Nenhum segredo em variável pública."
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Dependências e configuração. O Trivy lê pnpm-lock.yaml, deno.lock e
+  # arquivos de IaC/Docker do repositório.
+  # ══════════════════════════════════════════════════════════════════════════
+  vulnerabilities:
+    name: Vulnerabilidades e configuração
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # Dois passos de propósito: o primeiro gera SARIF sem falhar (para a aba
+      # Security receber o relatório), o segundo é o que reprova o build.
+      - name: Trivy (relatório SARIF)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: "0"
+
+      - name: Enviar SARIF para o GitHub Security
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+
+      - name: Trivy (gate CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+          exit-code: "1"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # SAST do código TypeScript (painel, agenda pública, app e Edge Functions).
+  # ══════════════════════════════════════════════════════════════════════════
+  codeql:
+    name: CodeQL (TypeScript)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Verificar se há código TS/JS
+        id: check
+        run: |
+          set -euo pipefail
+          if find . -path ./node_modules -prune -o \( -name '*.ts' -o -name '*.tsx' \) -print | grep -q .; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Sem código TypeScript ainda — CodeQL pulado."
+          fi
+
+      - name: Inicializar CodeQL
+        if: steps.check.outputs.found == 'true'
+        uses: github/codeql-action/init@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Analisar
+        if: steps.check.outputs.found == 'true'
+        uses: github/codeql-action/analyze@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          category: /language:javascript-typescript
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Licenças e CVEs de dependências novas, direto no diff do PR.
+  # ══════════════════════════════════════════════════════════════════════════
+  dependency-review:
+    name: Revisão de dependências
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+          # Copyleft forte é incompatível com software vendido sob licença
+          # direta ao barbeiro.
+          deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0
+
+  security-ok:
+    name: Segurança OK
+    if: always()
+    needs: [secrets, vulnerabilities, codeql, dependency-review]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consolidar resultado
+        run: |
+          set -euo pipefail
+          resultados='${{ join(needs.*.result, ' ') }}'
+          echo "Resultados dos jobs: $resultados"
+          for r in $resultados; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::Varredura de segurança reprovada."
+              exit 1
+            fi
+          done
+          echo "Segurança aprovada."

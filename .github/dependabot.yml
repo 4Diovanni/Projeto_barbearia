@@ -1,0 +1,34 @@
+version: 2
+
+# As actions são fixadas por SHA de commit (defesa contra tag movida). Sem
+# atualização automatizada, isso congela as versões e vira dívida de segurança
+# — o Dependabot é a outra metade dessa decisão.
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Ativa sozinho quando o monorepo pnpm existir.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Agrupado para não gerar uma enxurrada de PRs isolados; atualização de
+      # segurança continua vindo em PR próprio e imediato.
+      dev-dependencies:
+        dependency-type: development
+        patterns: ["*"]
+      production-minor-patch:
+        dependency-type: production
+        update-types: ["minor", "patch"]
