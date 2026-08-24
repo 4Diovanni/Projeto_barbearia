@@ -1,0 +1,15 @@
+{
+  "name": "@gk/core",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@gk/config": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  }
+}
