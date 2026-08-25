@@ -12,7 +12,7 @@ próximas issues do épico #12. `apps/web` é um scaffold padrão do Next.js, se
 `@gk/core` ainda (fora de escopo desta issue).
 
 **Tech Stack:** pnpm 9, Turborepo 2, TypeScript 5.9, Next.js 15.5 + React 19, Tailwind + shadcn/ui,
-Vitest 2.1 + @vitest/coverage-v8, ESLint 9 (flat config) + typescript-eslint 8, Prettier 3.
+Vitest 3.2 + @vitest/coverage-v8, ESLint 9 (flat config) + typescript-eslint 8, Prettier 3.
 
 ## Global Constraints
 
@@ -303,10 +303,10 @@ git commit -m "chore: packages/config com eslint e tsconfig compartilhados"
     "@gk/config": "workspace:*"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^3.2.7",
     "eslint": "^9.39.5",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.7"
   }
 }
 ```
@@ -647,3 +647,18 @@ gh pr view --json url,statusCheckRollup --jq '.url, (.statusCheckRollup | map(.s
 Expected: imprime a URL do PR e um array de estados únicos dos checks — deve conter só
 `"SUCCESS"` (jobs pulados pelo `detect` aparecem como `SKIPPED`/`NEUTRAL`, o que é aceito pelo
 gate `ci-ok`).
+
+---
+
+## Deviations
+
+Durante o Task 6, o Dependency Review do CI acusou CVEs reais nas dependências resolvidas e as
+seguintes correções reativas foram aplicadas (fora do escopo original do plano, mas necessárias
+para manter o PR mergeável):
+
+- `vitest`/`@vitest/coverage-v8` atualizados de `2.1.9` → `3.2.7` (GHSA-5xrq-8626-4rwp, critical).
+- `package.json` da raiz ganhou um bloco `pnpm.overrides`:
+  - `postcss` fixado em `^8.5.26` (CVE-2026-45623, CVE-2026-73646, high, herdado via
+    `next@15.5.24` → `postcss@8.4.31`).
+  - `vite` fixado em `^7.3.6` (GHSA-fx2h-pf6j-xcff, high, herdado transitivamente via o bump do
+    `vitest`).
