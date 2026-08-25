@@ -64,7 +64,7 @@ projeto_barbearia/
 5. Implementação mínima: `packages/core/src/index.ts` com `CORE_VERSION = "0.1.0"`.
 6. Rodar de novo → **PASS**.
 7. Scaffold `apps/web` via `pnpm create next-app@15.5.24 apps/web --typescript --tailwind --app
-   --eslint --src-dir --import-alias "@/*" --use-pnpm` (versão do `create-next-app` pinada em
+--eslint --src-dir --import-alias "@/*" --use-pnpm` (versão do `create-next-app` pinada em
    15.x — `@latest` hoje resolve Next 16, que não é o que a arquitetura documentada pede), depois
    `pnpm dlx shadcn@latest init -y -d` dentro de `apps/web`.
 8. `.env.example` com `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
@@ -74,21 +74,21 @@ projeto_barbearia/
 
 ## Decisões técnicas travadas
 
-| Decisão | Valor | Motivo |
-| --- | --- | --- |
-| `packageManager` | `pnpm@9.15.9` | Última da linha 9.x — o que a issue especifica (pnpm já vai na 11.x, mas isso não foi validado contra a arquitetura documentada) |
-| Next.js | 15.x | `docs/gk-barber-arquitetura.md` §3.1 — Server Components, App Router |
-| React | 19.x | Requisito do Next 15 |
-| Node | 22 (`.nvmrc`) | Igual ao `NODE_VERSION` do `ci.yml` |
-| Estilo | Tailwind CSS + shadcn/ui | §3.1 — componentes copiados para o repo, não dependência opaca |
-| Testes unitários | Vitest | §3.1 |
-| `ci.yml` | Sem alteração | Já é dinâmico via job `detect` |
+| Decisão          | Valor                    | Motivo                                                                                                                           |
+| ---------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `packageManager` | `pnpm@9.15.9`            | Última da linha 9.x — o que a issue especifica (pnpm já vai na 11.x, mas isso não foi validado contra a arquitetura documentada) |
+| Next.js          | 15.x                     | `docs/gk-barber-arquitetura.md` §3.1 — Server Components, App Router                                                             |
+| React            | 19.x                     | Requisito do Next 15                                                                                                             |
+| Node             | 22 (`.nvmrc`)            | Igual ao `NODE_VERSION` do `ci.yml`                                                                                              |
+| Estilo           | Tailwind CSS + shadcn/ui | §3.1 — componentes copiados para o repo, não dependência opaca                                                                   |
+| Testes unitários | Vitest                   | §3.1                                                                                                                             |
+| `ci.yml`         | Sem alteração            | Já é dinâmico via job `detect`                                                                                                   |
 
 ## Workflow Git/CI
 
 - Branch: `chore/monorepo-turborepo-pnpm` (já criada a partir de `main`)
 - Commit(s) seguindo conventional commits, ex.: `chore: estrutura do monorepo com turborepo,
-  pnpm e packages/core`
+pnpm e packages/core`
 - PR para `main` referenciando `Closes #18`
 - Pós-abertura: acompanhar `gh pr checks` até a pipeline concluir; investigar e corrigir
   qualquer falha antes de pedir revisão

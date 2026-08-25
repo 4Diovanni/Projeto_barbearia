@@ -2,18 +2,17 @@
   Todo PR precisa estar ligado a uma Issue.
   Substitua o número abaixo. PR sem Issue vinculada não é mergeado.
 -->
+
 Closes #
 
 ## O que muda
 
-
 ## Por quê
-
 
 ## Como testar
 
-
 ## Checklist
+
 - [ ] Issue vinculada acima com `Closes #<n>` (ou `Fixes #<n>`)
 - [ ] Lint / formatação
 - [ ] Testes automatizados passando

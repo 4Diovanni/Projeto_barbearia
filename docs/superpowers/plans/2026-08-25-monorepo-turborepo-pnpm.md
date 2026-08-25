@@ -30,6 +30,7 @@ Vitest 2.1 + @vitest/coverage-v8, ESLint 9 (flat config) + typescript-eslint 8, 
 ### Task 1: Esqueleto do workspace (pnpm + Turborepo)
 
 **Files:**
+
 - Create: `package.json` (raiz)
 - Create: `pnpm-workspace.yaml`
 - Create: `turbo.json`
@@ -38,6 +39,7 @@ Vitest 2.1 + @vitest/coverage-v8, ESLint 9 (flat config) + typescript-eslint 8, 
 - Create: `.prettierignore`
 
 **Interfaces:**
+
 - Consumes: nada — primeira task do projeto.
 - Produces: scripts raiz `pnpm build|lint|test|typecheck|format|format:check` (delegam para
   `turbo run <task>`); `tsconfig.base.json` na raiz é a fonte canônica de `compilerOptions`
@@ -176,11 +178,13 @@ git commit -m "chore: esqueleto do workspace pnpm + turborepo"
 ### Task 2: `packages/config` — ESLint e tsconfig compartilhados
 
 **Files:**
+
 - Create: `packages/config/package.json`
 - Create: `packages/config/eslint/index.js`
 - Create: `packages/config/tsconfig/base.json`
 
 **Interfaces:**
+
 - Consumes: `tsconfig.base.json` da raiz (Task 1) — `packages/config/tsconfig/base.json` apenas
   reexporta esse arquivo, para não duplicar `compilerOptions`.
 - Produces: pacote de workspace `@gk/config`, resolvível por `workspace:*`. Subpaths consumidos
@@ -218,7 +222,10 @@ export default [
   ...tseslint.configs.recommended,
   {
     rules: {
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
     },
   },
 ];
@@ -261,6 +268,7 @@ git commit -m "chore: packages/config com eslint e tsconfig compartilhados"
 ### Task 3: `packages/core` — TDD (regra de negócio pura)
 
 **Files:**
+
 - Create: `packages/core/package.json`
 - Create: `packages/core/tsconfig.json`
 - Create: `packages/core/vitest.config.ts`
@@ -269,6 +277,7 @@ git commit -m "chore: packages/config com eslint e tsconfig compartilhados"
 - Create: `packages/core/src/index.ts`
 
 **Interfaces:**
+
 - Consumes: `@gk/config/eslint/index.js` e `@gk/config/tsconfig/base.json` (Task 2), via
   `"@gk/config": "workspace:*"`.
 - Produces: `export const CORE_VERSION: string` de `packages/core/src/index.ts` — é o único
@@ -407,10 +416,12 @@ git commit -m "test: packages/core com TDD (CORE_VERSION)"
 ### Task 4: `apps/web` — scaffold Next.js 15 + shadcn/ui
 
 **Files:**
+
 - Create: `apps/web/` (gerado por `create-next-app`, não é conteúdo literal deste plano)
 - Modify: `apps/web/package.json` (adicionar script `typecheck`)
 
 **Interfaces:**
+
 - Consumes: nada de `@gk/core`/`@gk/config` ainda — wiring fica para issues futuras do épico #12
   quando `apps/web` de fato importar regra de negócio de `@gk/core`.
 - Produces: workspace `apps/web` com scripts `dev`, `build`, `lint`, `typecheck` — é o que os
@@ -485,9 +496,11 @@ git commit -m "chore: scaffold do apps/web (Next.js 15 + shadcn/ui)"
 ### Task 5: `.env.example`
 
 **Files:**
+
 - Create: `.env.example`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces: documentação das variáveis de ambiente que `apps/web` vai precisar quando o Supabase
   for integrado (issue futura do épico #12). Não é lido automaticamente pelo Next — é referência
@@ -535,6 +548,7 @@ git commit -m "chore: adiciona .env.example com placeholders do Supabase"
 **Files:** nenhum arquivo novo — task de integração e entrega.
 
 **Interfaces:**
+
 - Consumes: tudo das Tasks 1–5.
 - Produces: PR aberto contra `main`, com o status da pipeline verificado e reportado.
 
@@ -617,6 +631,7 @@ gh pr checks --watch
 ```
 
 Expected: aguarda até todos os checks concluírem. Se algum falhar:
+
 1. Rode `gh run view --log-failed` (ou abra o link do check) para ver o motivo.
 2. Corrija localmente, repita o Step 3, comite a correção, dê push de novo.
 3. Repita este step até o gate `CI OK` (`ci-ok` no `ci.yml`) passar.

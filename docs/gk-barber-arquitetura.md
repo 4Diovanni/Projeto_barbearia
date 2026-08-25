@@ -11,11 +11,11 @@
 
 Três princípios inegociáveis guiam todas as decisões abaixo:
 
-| Princípio | O que significa na prática |
-| --- | --- |
+| Princípio                        | O que significa na prática                                                                                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Sem intermediação financeira** | O app **organiza e registra** dinheiro, nunca o **processa**. Sem gateway, sem split, sem taxa, sem conta de pagamento. O PIX é direto na chave do barbeiro. |
-| **Customizável por barbeiro** | Cada instalação liga/desliga módulos via *feature flags*, com logo, cores e nome próprios. Um código-base, N configurações. |
-| **Intuitivo antes de completo** | O usuário-alvo é um barbeiro com o celular numa mão e a máquina na outra. Se um fluxo precisa de treinamento, o fluxo está errado. |
+| **Customizável por barbeiro**    | Cada instalação liga/desliga módulos via _feature flags_, com logo, cores e nome próprios. Um código-base, N configurações.                                  |
+| **Intuitivo antes de completo**  | O usuário-alvo é um barbeiro com o celular numa mão e a máquina na outra. Se um fluxo precisa de treinamento, o fluxo está errado.                           |
 
 ---
 
@@ -63,17 +63,17 @@ do app na hora**, não em produção às 19h de sexta com a barbearia cheia. As 
 também rodam Deno (TypeScript), então o mesmo tipo `Appointment` percorre o caminho inteiro — do
 `CREATE TABLE` até o botão na tela — sem uma única reescrita manual.
 
-| Camada | Escolha | Por quê |
-| --- | --- | --- |
-| **Web** (painel + agenda pública) | **Next.js 15** (App Router) + React 19 | Server Components deixam o dashboard rápido mesmo em 4G ruim; a agenda pública precisa de SSR para carregar instantâneo e ser indexável pelo Google ("barbearia + bairro"). |
-| **Mobile** | **Expo** (React Native) + Expo Router | Mesma linguagem, mesma lógica de negócio, mesmos devs. Expo Router usa roteamento por arquivos igual ao Next — a troca de contexto entre os dois apps é quase zero. OTA update via EAS entrega correção sem passar pela loja. |
-| **Estilo (web)** | Tailwind CSS + shadcn/ui | Componentes copiados para dentro do repo, não uma dependência opaca. Customização por barbearia vira troca de token CSS. |
-| **Estilo (mobile)** | NativeWind | Mesmas classes Tailwind no React Native, mesmos tokens de design. |
-| **Estado de servidor** | TanStack Query | Cache, revalidação, *optimistic update* e — crucial — fila offline no balcão. |
-| **Formulários + validação** | React Hook Form + **Zod** | O mesmo schema Zod valida no cliente, na Edge Function e vira o tipo TypeScript. Uma fonte de verdade. |
-| **Datas** | date-fns + date-fns-tz | Agenda é 90% manipulação de fuso e duração. Ver §6.2 — é onde sistemas de agendamento morrem. |
-| **Testes** | Vitest + Testing Library + Playwright | Playwright cobre o fluxo público de agendamento ponta a ponta. |
-| **Monorepo** | Turborepo + pnpm | Cache de build e código compartilhado entre web e mobile sem publicar pacote em registry. |
+| Camada                            | Escolha                                | Por quê                                                                                                                                                                                                                       |
+| --------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Web** (painel + agenda pública) | **Next.js 15** (App Router) + React 19 | Server Components deixam o dashboard rápido mesmo em 4G ruim; a agenda pública precisa de SSR para carregar instantâneo e ser indexável pelo Google ("barbearia + bairro").                                                   |
+| **Mobile**                        | **Expo** (React Native) + Expo Router  | Mesma linguagem, mesma lógica de negócio, mesmos devs. Expo Router usa roteamento por arquivos igual ao Next — a troca de contexto entre os dois apps é quase zero. OTA update via EAS entrega correção sem passar pela loja. |
+| **Estilo (web)**                  | Tailwind CSS + shadcn/ui               | Componentes copiados para dentro do repo, não uma dependência opaca. Customização por barbearia vira troca de token CSS.                                                                                                      |
+| **Estilo (mobile)**               | NativeWind                             | Mesmas classes Tailwind no React Native, mesmos tokens de design.                                                                                                                                                             |
+| **Estado de servidor**            | TanStack Query                         | Cache, revalidação, _optimistic update_ e — crucial — fila offline no balcão.                                                                                                                                                 |
+| **Formulários + validação**       | React Hook Form + **Zod**              | O mesmo schema Zod valida no cliente, na Edge Function e vira o tipo TypeScript. Uma fonte de verdade.                                                                                                                        |
+| **Datas**                         | date-fns + date-fns-tz                 | Agenda é 90% manipulação de fuso e duração. Ver §6.2 — é onde sistemas de agendamento morrem.                                                                                                                                 |
+| **Testes**                        | Vitest + Testing Library + Playwright  | Playwright cobre o fluxo público de agendamento ponta a ponta.                                                                                                                                                                |
+| **Monorepo**                      | Turborepo + pnpm                       | Cache de build e código compartilhado entre web e mobile sem publicar pacote em registry.                                                                                                                                     |
 
 > **Sobre UI universal (Tamagui / Solito):** avaliado e **descartado**. A promessa de "escreva o
 > componente uma vez, rode nos dois" cobra caro em configuração e em bugs difíceis de diagnosticar.
@@ -83,14 +83,14 @@ também rodam Deno (TypeScript), então o mesmo tipo `Appointment` percorre o ca
 
 ### 3.2 Backend — Supabase
 
-| Recurso | Uso no GK-Barber |
-| --- | --- |
-| **Postgres + RLS** | Núcleo de tudo. O isolamento entre barbearias é garantido **no banco**, não no código do app. |
-| **Auth** | Barbeiro/equipe por e-mail+senha ou magic link. Cliente final por **OTP de telefone** (não obrigamos ninguém a criar senha para marcar um corte). |
-| **Storage** | Logo da barbearia, fotos de portfólio, fotos antes/depois na ficha do cliente, recibos em PDF. |
-| **Realtime** | A agenda atualiza sozinha em todas as telas. Dois barbeiros no balcão nunca veem estados diferentes. |
-| **Edge Functions** (Deno) | Geração do QR PIX, webhook e envio do WhatsApp, geração de PDF, relatórios pesados. Tudo que precisa de segredo fica aqui. |
-| **pg_cron + pg_net** | Disparo dos lembretes ("amanhã às 14h") sem precisar de servidor extra ligado. |
+| Recurso                   | Uso no GK-Barber                                                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Postgres + RLS**        | Núcleo de tudo. O isolamento entre barbearias é garantido **no banco**, não no código do app.                                                     |
+| **Auth**                  | Barbeiro/equipe por e-mail+senha ou magic link. Cliente final por **OTP de telefone** (não obrigamos ninguém a criar senha para marcar um corte). |
+| **Storage**               | Logo da barbearia, fotos de portfólio, fotos antes/depois na ficha do cliente, recibos em PDF.                                                    |
+| **Realtime**              | A agenda atualiza sozinha em todas as telas. Dois barbeiros no balcão nunca veem estados diferentes.                                              |
+| **Edge Functions** (Deno) | Geração do QR PIX, webhook e envio do WhatsApp, geração de PDF, relatórios pesados. Tudo que precisa de segredo fica aqui.                        |
+| **pg_cron + pg_net**      | Disparo dos lembretes ("amanhã às 14h") sem precisar de servidor extra ligado.                                                                    |
 
 ---
 
@@ -102,7 +102,7 @@ Você respondeu que a transação é **local, direto com o barbeiro, sem SaaS**.
 
 **A hospedagem do software** → aqui a recomendação é **multi-tenant mesmo assim**. Um único projeto Supabase servindo todas as barbearias, isoladas por `tenant_id` + RLS.
 
-Por que multi-tenant se não é SaaS? Porque é o que torna as *feature flags* que você pediu realmente
+Por que multi-tenant se não é SaaS? Porque é o que torna as _feature flags_ que você pediu realmente
 viáveis. Com uma instância Supabase por barbearia, cada correção de bug vira N deploys manuais, N
 migrations rodadas na mão, N chances de errar — inviável a partir de ~10 clientes, e é aí que o
 produto começa a dar dinheiro. Multi-tenant, você corrige uma vez e todos recebem, e ligar um módulo
@@ -110,15 +110,16 @@ para um barbeiro específico é um `UPDATE` numa linha.
 
 A licença permanece uma venda local e direta: **o barbeiro te paga fora do app** (PIX seu, contrato, o que for). O sistema só guarda uma data de validade da licença. Sem billing, sem cartão, sem cobrança automática dentro do produto.
 
-> **Escape hatch:** o schema já nasce preparado para *instância dedicada*. Se um cliente grande exigir banco isolado, é o mesmo código apontando para outro projeto Supabase — sem refatoração, porque o `tenant_id` continua lá.
+> **Escape hatch:** o schema já nasce preparado para _instância dedicada_. Se um cliente grande exigir banco isolado, é o mesmo código apontando para outro projeto Supabase — sem refatoração, porque o `tenant_id` continua lá.
 
 ---
 
 ## 5. Módulos do Produto
 
-Os 7 tópicos originais, mapeados para módulos reais — cada um com sua *feature flag*.
+Os 7 tópicos originais, mapeados para módulos reais — cada um com sua _feature flag_.
 
 ### 5.1 Agendas Múltiplas para toda a equipe · `agenda.multi_profissional`
+
 - Cada profissional tem agenda, horário de trabalho e serviços próprios (nem todo barbeiro faz barba, nem todo faz química).
 - Visões: **dia** (colunas por profissional), **semana**, **lista** (a preferida no celular).
 - Recursos compartilhados: cadeiras, lavatório — impede agendar 3 clientes para 2 cadeiras.
@@ -126,6 +127,7 @@ Os 7 tópicos originais, mapeados para módulos reais — cada um com sua *featu
 - Drag & drop para remarcar, com aviso automático ao cliente.
 
 ### 5.2 Agendamento Online para o cliente · `agenda.publica`
+
 - Rota pública `gkbarber.app/b/{slug}` — o link que vai na bio do Instagram e no status do WhatsApp.
 - Fluxo em 4 toques: **serviço → profissional (ou "tanto faz") → horário → confirmar**.
 - Sem cadastro. Nome + telefone, confirmado por OTP no WhatsApp. Cliente recorrente é reconhecido pelo número.
@@ -141,13 +143,13 @@ Os 7 tópicos originais, mapeados para módulos reais — cada um com sua *featu
 **Armadilha 1 — "chave escondida" tem limite técnico.**
 O payload EMV do PIX **carrega a chave em texto claro** (campo `26-01`). Qualquer pessoa que escaneie o QR **vai ver a chave no app do banco** — é assim que o PIX funciona, e nenhum sistema muda isso. O que é possível e o que faremos:
 
-| Proteção | Viável? |
-| --- | --- |
-| Não exibir a chave em nenhuma tela do app | ✅ Sim |
-| Não expor a chave em nenhuma resposta de API pública | ✅ Sim |
-| Guardar cifrada no banco (Supabase Vault / pgsodium), nunca em texto | ✅ Sim |
-| Gerar o QR **exclusivamente no servidor** (a chave nunca chega ao navegador) | ✅ Sim |
-| Impedir que quem escaneia descubra a chave | ❌ **Impossível** |
+| Proteção                                                                     | Viável?           |
+| ---------------------------------------------------------------------------- | ----------------- |
+| Não exibir a chave em nenhuma tela do app                                    | ✅ Sim            |
+| Não expor a chave em nenhuma resposta de API pública                         | ✅ Sim            |
+| Guardar cifrada no banco (Supabase Vault / pgsodium), nunca em texto         | ✅ Sim            |
+| Gerar o QR **exclusivamente no servidor** (a chave nunca chega ao navegador) | ✅ Sim            |
+| Impedir que quem escaneia descubra a chave                                   | ❌ **Impossível** |
 
 Se o objetivo real é a chave não ser pública, a saída correta é o barbeiro **cadastrar uma chave aleatória** (o PIX permite chaves EVP — um UUID sem relação com CPF ou telefone). Aí, mesmo visível, ela não revela dado pessoal nenhum. **Essa é a recomendação: exigir chave aleatória no onboarding.**
 
@@ -161,15 +163,17 @@ Nada avisa o sistema de que o PIX caiu. O fluxo real, então:
 
 O status default é `aguardando_confirmacao`, e o dashboard mostra um badge de pendências. **Não invente confirmação automática** — vai gerar prejuízo real. Se um dia houver volume que justifique, um adapter de gateway (Asaas/Mercado Pago) entra sem quebrar nada, porque o registro de pagamento já é uma entidade própria.
 
-- **Sinal antecipado** configurável (ex.: 30% para segurar o horário) — a arma real contra *no-show*.
+- **Sinal antecipado** configurável (ex.: 30% para segurar o horário) — a arma real contra _no-show_.
 
 ### 5.4 Monitoramento de Pacotes · `pacotes`
+
 - Venda de pacotes: "10 cortes por R$ 250", "Corte + Barba mensal".
 - Saldo de sessões por cliente, consumo automático ao finalizar o atendimento, validade e alerta de expiração.
 - Cliente vê o saldo na página pública; barbeiro vê no atendimento.
-- **Financeiramente correto:** a receita entra no caixa **na venda**, mas o *reconhecimento* por sessão é rastreado à parte — senão o relatório mente sobre o faturamento do mês.
+- **Financeiramente correto:** a receita entra no caixa **na venda**, mas o _reconhecimento_ por sessão é rastreado à parte — senão o relatório mente sobre o faturamento do mês.
 
 ### 5.5 Controle Financeiro Detalhado · `financeiro`
+
 - Caixa diário: abertura, sangria, fechamento, conferência.
 - Entradas (serviços, produtos, pacotes) e saídas (aluguel, insumos, energia, comissão).
 - **Comissão por barbeiro**: percentual fixo, valor fixo por serviço, ou escalonado por faixa de faturamento. Fechamento e recibo automáticos.
@@ -179,7 +183,7 @@ O status default é `aguardando_confirmacao`, e o dashboard mostra um badge de p
 
 ### 5.6 Emissão de Carnês · `financeiro.carne`
 
-⚠️ **Ajuste de escopo necessário.** *Boleto bancário registrado* exige convênio com banco ou gateway — incompatível com "sem intermediação". O que o módulo entrega de verdade:
+⚠️ **Ajuste de escopo necessário.** _Boleto bancário registrado_ exige convênio com banco ou gateway — incompatível com "sem intermediação". O que o módulo entrega de verdade:
 
 - **Carnê de parcelas**: um valor dividido em N parcelas com vencimentos (ex.: pacote anual em 12x).
 - Cada parcela gera **seu próprio QR PIX** com o valor exato.
@@ -190,9 +194,10 @@ O status default é `aguardando_confirmacao`, e o dashboard mostra um badge de p
 Na prática do balcão isso resolve o mesmo problema que o carnê de boleto — parcelar e cobrar — sem exigir banco. Se boleto registrado virar requisito de venda, entra depois via adapter (Asaas emite carnê nativamente).
 
 ### 5.7 Lembretes e Confirmações via WhatsApp · `whatsapp`
+
 - **WhatsApp Business Cloud API oficial** (Meta) — decisão correta para produto pago. Client não-oficial (Baileys/Evolution) tem risco real de banir o número do seu cliente, e o problema vira seu.
 - Templates aprovados: confirmação de agendamento, lembrete 24h/2h antes, cancelamento, aniversário, retorno ("faz 45 dias").
-- **Confirmação interativa**: botões *Confirmar* / *Remarcar* / *Cancelar*. A resposta cai no webhook e atualiza a agenda sozinha.
+- **Confirmação interativa**: botões _Confirmar_ / _Remarcar_ / _Cancelar_. A resposta cai no webhook e atualiza a agenda sozinha.
 - Envio agendado via `pg_cron`, com fila e retry — mensagem que falha não some silenciosamente.
 - Opt-out obrigatório (LGPD).
 
@@ -203,6 +208,7 @@ Na prática do balcão isso resolve o mesmo problema que o carnê de boleto — 
 Módulos que fazem sentido no contexto e aumentam o valor de venda:
 
 ### 6.1 Diferenciais de produto
+
 1. **Ficha completa do cliente** — histórico, preferências ("máquina 2 nas laterais", "não gosta de navalha"), alergias a química, fotos antes/depois no Storage, aniversário. É o que faz o cliente sentir que o barbeiro lembra dele.
 2. **Anti no-show** — score de faltas por cliente, exigência de sinal para reincidentes, bloqueio após N faltas.
 3. **Fidelidade** — "a cada 10 cortes, o 11º é grátis", com cartão digital na página pública.
@@ -218,13 +224,13 @@ Módulos que fazem sentido no contexto e aumentam o valor de venda:
 
 Você pediu "visão de lucros". Faturamento bruto é a métrica menos útil. O painel abre com:
 
-| Bloco | Métrica |
-| --- | --- |
-| **Topo** | Faturamento do mês · Lucro líquido (bruto − comissões − despesas − taxas) · Ticket médio · vs. mês anterior |
-| **Ocupação** | % da agenda preenchida por dia/profissional. Revela o buraco: **quais horários estão mortos** |
-| **Retenção** | % de clientes que voltaram em 60 dias · quantos sumiram · frequência média de retorno |
-| **Ranking** | Faturamento e ocupação por barbeiro · serviços mais lucrativos (não os mais vendidos — os mais lucrativos) |
-| **Alertas** | Pagamentos pendentes · parcelas vencidas · pacotes expirando · estoque baixo · clientes sumidos |
+| Bloco        | Métrica                                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Topo**     | Faturamento do mês · Lucro líquido (bruto − comissões − despesas − taxas) · Ticket médio · vs. mês anterior |
+| **Ocupação** | % da agenda preenchida por dia/profissional. Revela o buraco: **quais horários estão mortos**               |
+| **Retenção** | % de clientes que voltaram em 60 dias · quantos sumiram · frequência média de retorno                       |
+| **Ranking**  | Faturamento e ocupação por barbeiro · serviços mais lucrativos (não os mais vendidos — os mais lucrativos)  |
+| **Alertas**  | Pagamentos pendentes · parcelas vencidas · pacotes expirando · estoque baixo · clientes sumidos             |
 
 > Todo gráfico responde a uma pergunta que muda uma decisão. Se não muda, não entra no dashboard.
 
@@ -322,7 +328,7 @@ Regras, sem exceção:
 - **Armazenar sempre `timestamptz` em UTC.** Nunca `timestamp` puro, nunca string.
 - **Cada tenant tem seu `timezone`** (`America/Sao_Paulo` por padrão) — porque o produto vai ser vendido em outros estados.
 - **Converter só na borda de exibição.** Toda lógica interna roda em UTC.
-- A grade de trabalho é *hora local* (`09:00`–`19:00`); a conversão para UTC acontece **por data**, não uma vez só. Horário de verão pode voltar, e código que assume offset fixo quebra em silêncio.
+- A grade de trabalho é _hora local_ (`09:00`–`19:00`); a conversão para UTC acontece **por data**, não uma vez só. Horário de verão pode voltar, e código que assume offset fixo quebra em silêncio.
 
 ---
 
@@ -361,14 +367,15 @@ A página pública precisa mostrar horários livres **sem** expor nome, telefone
 
 ### 8.3 Segredos
 
-| Dado | Onde vive |
-| --- | --- |
-| Chave PIX do barbeiro | Cifrada no Supabase Vault. Decifrada só dentro da Edge Function que monta o BR Code. |
-| Token WhatsApp Cloud API | Secret da Edge Function. Nunca no cliente. |
-| `service_role key` | Só em Edge Function / server-side do Next. |
-| Senhas | Supabase Auth. Não reinventar. |
+| Dado                     | Onde vive                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| Chave PIX do barbeiro    | Cifrada no Supabase Vault. Decifrada só dentro da Edge Function que monta o BR Code. |
+| Token WhatsApp Cloud API | Secret da Edge Function. Nunca no cliente.                                           |
+| `service_role key`       | Só em Edge Function / server-side do Next.                                           |
+| Senhas                   | Supabase Auth. Não reinventar.                                                       |
 
 ### 8.4 LGPD
+
 Consentimento explícito para WhatsApp (com opt-out em toda mensagem) · exportação dos dados do cliente · exclusão com anonimização (preserva o histórico financeiro, apaga o dado pessoal) · `audit_logs` de acesso a dado sensível · política de privacidade acessível na página pública.
 
 ---
@@ -400,7 +407,7 @@ create table tenant_features (
 **Consumo, idêntico em web e mobile:**
 
 ```tsx
-const carne = useFeature('financeiro.carne');
+const carne = useFeature("financeiro.carne");
 if (!carne.enabled) return <UpsellCard feature="carne" />;
 // carne.config.max_parcelas → 12
 ```
@@ -474,16 +481,16 @@ gk-barber/
 ## 11. Roadmap
 
 **Fase 1 — A Base (semanas 1–3)**
-Monorepo · schema + RLS + exclusion constraint · Auth · CRUD de serviços, profissionais e horários · agenda interna funcionando. *Entregável: o barbeiro já consegue substituir o caderno.*
+Monorepo · schema + RLS + exclusion constraint · Auth · CRUD de serviços, profissionais e horários · agenda interna funcionando. _Entregável: o barbeiro já consegue substituir o caderno._
 
 **Fase 2 — O Cliente Chega (semanas 4–6)**
-Agenda pública `/b/{slug}` · motor de disponibilidade · OTP por telefone · ficha do cliente · PWA instalável. *Entregável: link compartilhável na bio do Instagram.*
+Agenda pública `/b/{slug}` · motor de disponibilidade · OTP por telefone · ficha do cliente · PWA instalável. _Entregável: link compartilhável na bio do Instagram._
 
 **Fase 3 — O Dinheiro (semanas 7–9)**
-Caixa · transações · comissões · gerador de QR PIX (com confirmação manual) · dashboard de lucros. *Entregável: o barbeiro vê quanto realmente lucrou.*
+Caixa · transações · comissões · gerador de QR PIX (com confirmação manual) · dashboard de lucros. _Entregável: o barbeiro vê quanto realmente lucrou._
 
 **Fase 4 — A Retenção (semanas 10–12)**
-WhatsApp Cloud API · lembretes automáticos · confirmação com botões · campanhas de reativação · NPS. *Entregável: queda mensurável de no-show — o argumento de venda mais forte.*
+WhatsApp Cloud API · lembretes automáticos · confirmação com botões · campanhas de reativação · NPS. _Entregável: queda mensurável de no-show — o argumento de venda mais forte._
 
 **Fase 5 — O App (semanas 13–15)**
 Expo · agenda do dia · push nativo · check-in · modo offline · build EAS.
@@ -497,28 +504,28 @@ Feature flags completas · white-label · pacotes e carnês · estoque · fideli
 
 ## 12. Decisões Registradas (ADR resumido)
 
-| # | Decisão | Alternativa descartada | Razão |
-| --- | --- | --- | --- |
-| 1 | TypeScript em todo o stack | Kotlin/Swift nativo, Flutter | Tipos gerados do Postgres percorrem até a UI; um time, um idioma |
-| 2 | Next.js + Expo separados | Tamagui/Solito universal | Compartilhar lógica é barato; compartilhar pixels é caro |
-| 3 | Multi-tenant com RLS | Instância por barbearia | Manutenção linear é inviável; RLS isola no banco |
-| 4 | PIX estático sem gateway | Asaas / Mercado Pago | Requisito explícito de zero intermediação financeira |
-| 5 | Confirmação manual de pagamento | Baixa automática | Sem gateway não há webhook — automatizar aqui geraria prejuízo |
-| 6 | Chave PIX aleatória (EVP) obrigatória | Chave CPF/telefone | O QR expõe a chave por design; EVP não revela dado pessoal |
-| 7 | Carnê de parcelas com PIX | Boleto registrado | Boleto exige convênio bancário, incompatível com a decisão 4 |
-| 8 | WhatsApp Cloud API oficial | Baileys / Evolution | Risco de banir o número do cliente é inaceitável em produto pago |
-| 9 | Exclusion constraint contra double-booking | Validação na aplicação | Só o banco vence condição de corrida |
-| 10 | Feature flags com `config` jsonb | Branch de código por cliente | Customização sem fork; um binário para todos |
+| #   | Decisão                                    | Alternativa descartada       | Razão                                                            |
+| --- | ------------------------------------------ | ---------------------------- | ---------------------------------------------------------------- |
+| 1   | TypeScript em todo o stack                 | Kotlin/Swift nativo, Flutter | Tipos gerados do Postgres percorrem até a UI; um time, um idioma |
+| 2   | Next.js + Expo separados                   | Tamagui/Solito universal     | Compartilhar lógica é barato; compartilhar pixels é caro         |
+| 3   | Multi-tenant com RLS                       | Instância por barbearia      | Manutenção linear é inviável; RLS isola no banco                 |
+| 4   | PIX estático sem gateway                   | Asaas / Mercado Pago         | Requisito explícito de zero intermediação financeira             |
+| 5   | Confirmação manual de pagamento            | Baixa automática             | Sem gateway não há webhook — automatizar aqui geraria prejuízo   |
+| 6   | Chave PIX aleatória (EVP) obrigatória      | Chave CPF/telefone           | O QR expõe a chave por design; EVP não revela dado pessoal       |
+| 7   | Carnê de parcelas com PIX                  | Boleto registrado            | Boleto exige convênio bancário, incompatível com a decisão 4     |
+| 8   | WhatsApp Cloud API oficial                 | Baileys / Evolution          | Risco de banir o número do cliente é inaceitável em produto pago |
+| 9   | Exclusion constraint contra double-booking | Validação na aplicação       | Só o banco vence condição de corrida                             |
+| 10  | Feature flags com `config` jsonb           | Branch de código por cliente | Customização sem fork; um binário para todos                     |
 
 ---
 
 ## 13. Riscos Conhecidos
 
-| Risco | Mitigação |
-| --- | --- |
-| Barbeiro esquece de dar baixa no PIX | Badge persistente de pendências no dashboard + resumo diário no WhatsApp dele |
-| Aprovação de templates na Meta demora | Submeter os templates na Fase 3, antes de precisar deles na Fase 4 |
-| Internet cai no balcão | PWA offline-first com fila de sincronização (Fase 5) |
-| Cliente marca e não aparece | Sinal via PIX + confirmação 24h + score de no-show |
-| Custo do WhatsApp escala | Monitorar custo/conversa por tenant; limite configurável por flag |
-| RLS esquecida numa tabela nova | Teste automatizado no CI que falha se existir tabela com `tenant_id` e RLS desabilitada |
+| Risco                                 | Mitigação                                                                               |
+| ------------------------------------- | --------------------------------------------------------------------------------------- |
+| Barbeiro esquece de dar baixa no PIX  | Badge persistente de pendências no dashboard + resumo diário no WhatsApp dele           |
+| Aprovação de templates na Meta demora | Submeter os templates na Fase 3, antes de precisar deles na Fase 4                      |
+| Internet cai no balcão                | PWA offline-first com fila de sincronização (Fase 5)                                    |
+| Cliente marca e não aparece           | Sinal via PIX + confirmação 24h + score de no-show                                      |
+| Custo do WhatsApp escala              | Monitorar custo/conversa por tenant; limite configurável por flag                       |
+| RLS esquecida numa tabela nova        | Teste automatizado no CI que falha se existir tabela com `tenant_id` e RLS desabilitada |
