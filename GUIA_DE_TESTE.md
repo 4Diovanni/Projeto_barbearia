@@ -80,13 +80,11 @@ Pare o servidor com `Ctrl+C`.
 
 ## 7. Comandos úteis para testar partes isoladas
 
-| Comando                        | O que faz                                             |
-| ------------------------------- | ------------------------------------------------------ |
-| `pnpm --filter @gk/core test`   | Só os testes do `packages/core`                        |
-| `pnpm --filter @gk/core lint`   | Só o lint do `packages/core`                            |
-| `pnpm --filter=./apps/web build`| Só o build de produção do `apps/web`                    |
-| `pnpm format`                   | Formata o repositório inteiro com Prettier              |
-| `pnpm format:check`             | Só verifica formatação, sem alterar arquivos            |
+- `pnpm --filter @gk/core test` — só os testes do `packages/core`
+- `pnpm --filter @gk/core lint` — só o lint do `packages/core`
+- `pnpm --filter=./apps/web build` — só o build de produção do `apps/web`
+- `pnpm format` — formata o repositório inteiro com Prettier
+- `pnpm format:check` — só verifica formatação, sem alterar arquivos
 
 ## 8. O que validar
 
