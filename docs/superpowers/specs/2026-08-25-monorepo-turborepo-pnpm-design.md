@@ -1,7 +1,7 @@
 # Design: Monorepo Turborepo + pnpm (Issue #18)
 
 **Épico:** #12 · **Fase 1** · Ref: `docs/gk-barber-arquitetura.md` §3.1, §10
-**Issue:** https://github.com/4Diovanni/Projeto_barbearia/issues/18
+**Issue:** <https://github.com/4Diovanni/Projeto_barbearia/issues/18>
 **Branch:** `chore/monorepo-turborepo-pnpm`
 
 ## Objetivo
@@ -31,7 +31,7 @@ Fora de escopo (fica para issues futuras do épico #12):
 
 ## Estrutura de diretórios
 
-```
+```text
 projeto_barbearia/
 ├── package.json                    # raiz, private, packageManager: pnpm@9.15.9
 ├── pnpm-workspace.yaml             # apps/*, packages/*

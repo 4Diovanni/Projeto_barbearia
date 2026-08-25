@@ -114,13 +114,13 @@ da raiz (o pseudo-workspace `//`). É isso que faz `pnpm turbo run format:check`
 
 - [ ] **Step 5: Criar `.nvmrc`**
 
-```
+```text
 22
 ```
 
 - [ ] **Step 6: Criar `.prettierignore`**
 
-```
+```text
 node_modules
 .turbo
 .next
@@ -515,10 +515,10 @@ git commit -m "chore: scaffold do apps/web (Next.js 15 + shadcn/ui)"
 # SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-Conteúdo exato do arquivo `.env.example` (sem o prefixo `# ` das linhas de variável — só o
+Conteúdo exato do arquivo `.env.example` (sem o prefixo `#` das linhas de variável — só o
 comentário de aviso leva `#`):
 
-```
+```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 # ⚠️ server-side apenas — jamais com prefixo NEXT_PUBLIC_
