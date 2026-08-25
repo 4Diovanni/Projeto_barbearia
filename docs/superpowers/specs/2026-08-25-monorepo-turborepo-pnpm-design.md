@@ -63,9 +63,10 @@ projeto_barbearia/
 4. Rodar `pnpm --filter @gk/core test` → **FAIL** confirmado antes de implementar.
 5. Implementação mínima: `packages/core/src/index.ts` com `CORE_VERSION = "0.1.0"`.
 6. Rodar de novo → **PASS**.
-7. Scaffold `apps/web` via `pnpm create next-app@latest apps/web --typescript --tailwind --app
-   --eslint --src-dir --import-alias "@/*"`, depois `pnpm dlx shadcn@latest init` dentro de
-   `apps/web`.
+7. Scaffold `apps/web` via `pnpm create next-app@15.5.24 apps/web --typescript --tailwind --app
+   --eslint --src-dir --import-alias "@/*" --use-pnpm` (versão do `create-next-app` pinada em
+   15.x — `@latest` hoje resolve Next 16, que não é o que a arquitetura documentada pede), depois
+   `pnpm dlx shadcn@latest init -y -d` dentro de `apps/web`.
 8. `.env.example` com `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY` (comentado como server-side apenas).
 9. Rodar `pnpm turbo run build lint test typecheck` na raiz → tudo verde.
