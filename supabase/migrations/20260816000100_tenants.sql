@@ -1,6 +1,6 @@
 -- Fundação multi-tenant: tenants, tenant_members, units e RLS (issue #19).
 -- Toda tabela de negócio criada a partir daqui usa `tenant_id` + a policy
--- padrão `tenant_id in (select auth.user_tenants())`.
+-- padrão `tenant_id in (select public.user_tenants())`.
 
 create extension if not exists btree_gist;
 
@@ -36,7 +36,13 @@ create table units (
 -- STABLE + SECURITY DEFINER: o planner cacheia o resultado por statement, e
 -- roda com os privilégios do dono da função em vez dos do usuário logado, o
 -- que evita que a própria política de tenant_members bloqueie a subquery.
-create or replace function auth.user_tenants()
+--
+-- Vive em `public`, não em `auth`: o Postgres local do Supabase (e o Cloud)
+-- nega `CREATE` em `auth` para o role que aplica migrations (schema é
+-- reservado ao GoTrue) — confirmado pelo CI (`permission denied for schema
+-- auth`, SQLSTATE 42501) ao tentar criar a função lá como a issue original
+-- descrevia.
+create or replace function public.user_tenants()
 returns setof uuid
 language sql stable security definer set search_path = '' as $$
   select tenant_id from public.tenant_members
@@ -48,13 +54,13 @@ alter table tenant_members enable row level security;
 alter table units          enable row level security;
 
 create policy "membros acessam a propria barbearia" on tenants for all
-  using      (id in (select auth.user_tenants()))
-  with check (id in (select auth.user_tenants()));
+  using      (id in (select public.user_tenants()))
+  with check (id in (select public.user_tenants()));
 
 create policy "membros veem o proprio vinculo" on tenant_members for all
-  using      (tenant_id in (select auth.user_tenants()))
-  with check (tenant_id in (select auth.user_tenants()));
+  using      (tenant_id in (select public.user_tenants()))
+  with check (tenant_id in (select public.user_tenants()));
 
 create policy "membros acessam as proprias unidades" on units for all
-  using      (tenant_id in (select auth.user_tenants()))
-  with check (tenant_id in (select auth.user_tenants()));
+  using      (tenant_id in (select public.user_tenants()))
+  with check (tenant_id in (select public.user_tenants()));
