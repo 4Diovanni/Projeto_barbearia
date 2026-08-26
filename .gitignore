@@ -87,3 +87,4 @@ ehthumbs.db
 # ── Ferramentas locais ─────────────────────────────────────────────────────
 actionlint*
 trivy-results.sarif
+.claude/
